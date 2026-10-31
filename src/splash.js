@@ -314,6 +314,12 @@
   function applyTheme() { root.classList.toggle('dsu-dark', wantsDark()) }
   applyTheme()
   // live: flip mid-animation when the OS toggles (no reload needed)
+  // A replay can start a second run without the previous one finishing (the
+  // re-entrancy guard replaces the public API with no-ops), so clear any
+  // listener left by the previous run here instead of relying on finish().
+  if (typeof window.__HBS_THEME_CLEANUP__ === 'function') {
+    try { window.__HBS_THEME_CLEANUP__() } catch (e) {}
+  }
   if (osDarkQuery) {
     var onSchemeChange = function () { if (C.theme === 'auto') applyTheme() }
     if (typeof osDarkQuery.addEventListener === 'function') osDarkQuery.addEventListener('change', onSchemeChange)
@@ -323,7 +329,9 @@
       if (typeof osDarkQuery.removeEventListener === 'function') osDarkQuery.removeEventListener('change', onSchemeChange)
       else if (typeof osDarkQuery.removeListener === 'function') osDarkQuery.removeListener(onSchemeChange)
       themeCleanup = null
+      window.__HBS_THEME_CLEANUP__ = null
     }
+    window.__HBS_THEME_CLEANUP__ = themeCleanup
   }
   root.style.setProperty('--dsu-speed', String(C.speed))
   root.style.setProperty('--dsu-accent', C.accent)
