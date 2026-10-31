@@ -70,7 +70,7 @@
   var DEFAULTS = {
     enabled: true,
     mode: 'session',            // always | session | daily
-    theme: 'light',             // light | dark
+    theme: 'auto',              // auto | light | dark (auto follows the OS)
     speed: 1,
     requireInteraction: true,   // steps 1 and 2 wait for user confirmation
     allowSkip: true,
@@ -301,7 +301,30 @@
     root.className = 'dsu-root'
     document.body.appendChild(root)
   }
-  root.classList.toggle('dsu-dark', C.theme === 'dark')
+  // ---- theme: auto follows the OS, light/dark pin it ----
+  // The host renderer resolves its own dark mode from prefers-color-scheme,
+  // so the same query keeps the boot plate in step with the app.
+  var osDarkQuery = (typeof window.matchMedia === 'function')
+    ? window.matchMedia('(prefers-color-scheme: dark)') : null
+  function wantsDark() {
+    if (C.theme === 'dark') return true
+    if (C.theme === 'light') return false
+    return !!(osDarkQuery && osDarkQuery.matches)
+  }
+  function applyTheme() { root.classList.toggle('dsu-dark', wantsDark()) }
+  applyTheme()
+  // live: flip mid-animation when the OS toggles (no reload needed)
+  if (osDarkQuery) {
+    var onSchemeChange = function () { if (C.theme === 'auto') applyTheme() }
+    if (typeof osDarkQuery.addEventListener === 'function') osDarkQuery.addEventListener('change', onSchemeChange)
+    else if (typeof osDarkQuery.addListener === 'function') osDarkQuery.addListener(onSchemeChange)
+    themeCleanup = function () {
+      if (!osDarkQuery) return
+      if (typeof osDarkQuery.removeEventListener === 'function') osDarkQuery.removeEventListener('change', onSchemeChange)
+      else if (typeof osDarkQuery.removeListener === 'function') osDarkQuery.removeListener(onSchemeChange)
+      themeCleanup = null
+    }
+  }
   root.style.setProperty('--dsu-speed', String(C.speed))
   root.style.setProperty('--dsu-accent', C.accent)
   root.style.setProperty('--dsu-glitch-a', C.glitchA)
@@ -532,6 +555,7 @@
 
   /* ── Timeline engine ───────────────────────────────────────────── */
   var timers = []
+  var themeCleanup = null
   var waiters = []
   var skipped = false
   var finished = false
@@ -1348,6 +1372,7 @@
     releaseAll()
     stopHex()
     voice.stop()
+    if (themeCleanup) themeCleanup()
     if (clockTimer) { clearInterval(clockTimer); clockTimer = null }
     try {
       if (C.mode === 'session') window.sessionStorage.setItem('dsh-startup-screen:shown', '1')

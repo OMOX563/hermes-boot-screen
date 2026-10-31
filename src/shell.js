@@ -377,8 +377,13 @@ function AppearanceCard() {
           }),
           jsx(ListRow, {
             title: 'Theme',
+            description: jsx('span', { style: ROW_HINT, children: 'Match system follows the OS/appearance setting and flips live; the other two pin it.' }),
             action: jsx(SegmentedControl, {
-              options: [{ id: 'light', label: 'Warm white' }, { id: 'dark', label: 'Dark' }],
+              options: [
+                { id: 'auto', label: 'Match system' },
+                { id: 'light', label: 'Warm white' },
+                { id: 'dark', label: 'Dark' }
+              ],
               value: cfg.theme,
               onChange: v => set('theme', v)
             })

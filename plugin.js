@@ -44,7 +44,7 @@ const DAY_KEY = 'hermes-boot-screen:day'
 const DEFAULTS = {
     enabled: true,
     mode: 'session',            // always | session | daily
-    theme: 'light',             // light | dark
+    theme: 'auto',              // auto | light | dark (auto follows the OS)
     speed: 1,
     requireInteraction: true,   // steps 1 and 2 wait for user confirmation
     allowSkip: true,
@@ -61,7 +61,7 @@ const DEFAULTS = {
     voiceSource: 'asset',       // asset=prefer real voice assets / tts=all TTS synthesis
     voiceLead: 240,             // a short silence after the cue before speaking
     identity: 'OMOX',    // ← the "identity name" editable in settings
-    identityId: 'e7c4138cfc0bfc0d',
+    identityId: '146ecaea18d3600c',
     accessLevel: '0',
     brand1: 'HERMES',
     brand2: 'AGENTIC INTELLIGENCE',
@@ -85,7 +85,7 @@ const TEXT_KEYS = [
 const COLOR_KEYS = ['accent', 'glitchA', 'glitchB']
 const ENUMS = {
   mode: ['always', 'session', 'daily'],
-  theme: ['light', 'dark'],
+  theme: ['auto', 'light', 'dark'],
   voiceLang: ['en', 'zh', 'both'],
   sfx: ['audio', 'synth'],
   voiceSource: ['asset', 'tts']
@@ -362,7 +362,30 @@ function runSplash() {
     root.className = 'dsu-root'
     document.body.appendChild(root)
   }
-  root.classList.toggle('dsu-dark', C.theme === 'dark')
+  // ---- theme: auto follows the OS, light/dark pin it ----
+  // The host renderer resolves its own dark mode from prefers-color-scheme,
+  // so the same query keeps the boot plate in step with the app.
+  var osDarkQuery = (typeof window.matchMedia === 'function')
+    ? window.matchMedia('(prefers-color-scheme: dark)') : null
+  function wantsDark() {
+    if (C.theme === 'dark') return true
+    if (C.theme === 'light') return false
+    return !!(osDarkQuery && osDarkQuery.matches)
+  }
+  function applyTheme() { root.classList.toggle('dsu-dark', wantsDark()) }
+  applyTheme()
+  // live: flip mid-animation when the OS toggles (no reload needed)
+  if (osDarkQuery) {
+    var onSchemeChange = function () { if (C.theme === 'auto') applyTheme() }
+    if (typeof osDarkQuery.addEventListener === 'function') osDarkQuery.addEventListener('change', onSchemeChange)
+    else if (typeof osDarkQuery.addListener === 'function') osDarkQuery.addListener(onSchemeChange)
+    themeCleanup = function () {
+      if (!osDarkQuery) return
+      if (typeof osDarkQuery.removeEventListener === 'function') osDarkQuery.removeEventListener('change', onSchemeChange)
+      else if (typeof osDarkQuery.removeListener === 'function') osDarkQuery.removeListener(onSchemeChange)
+      themeCleanup = null
+    }
+  }
   root.style.setProperty('--dsu-speed', String(C.speed))
   root.style.setProperty('--dsu-accent', C.accent)
   root.style.setProperty('--dsu-glitch-a', C.glitchA)
@@ -594,6 +617,7 @@ function runSplash() {
   /* ── Timeline engine ───────────────────────────────────────────── */
   var timers = []
   var escHandler = null
+  var themeCleanup = null
   var waiters = []
   var skipped = false
   var finished = false
@@ -1414,6 +1438,7 @@ function runSplash() {
       document.removeEventListener('keydown', escHandler, true)
       escHandler = null
     }
+    if (themeCleanup) themeCleanup()
     if (clockTimer) { clearInterval(clockTimer); clockTimer = null }
     try {
       if (C.mode === 'session') window.sessionStorage.setItem('hermes-boot-screen:shown', '1')
@@ -1804,8 +1829,13 @@ function AppearanceCard() {
           }),
           jsx(ListRow, {
             title: 'Theme',
+            description: jsx('span', { style: ROW_HINT, children: 'Match system follows the OS/appearance setting and flips live; the other two pin it.' }),
             action: jsx(SegmentedControl, {
-              options: [{ id: 'light', label: 'Warm white' }, { id: 'dark', label: 'Dark' }],
+              options: [
+                { id: 'auto', label: 'Match system' },
+                { id: 'light', label: 'Warm white' },
+                { id: 'dark', label: 'Dark' }
+              ],
               value: cfg.theme,
               onChange: v => set('theme', v)
             })

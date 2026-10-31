@@ -12,6 +12,8 @@ const rootDir = root
 const pluginPath = path.join(rootDir, '..', 'plugin.js')
 let src = fs.readFileSync(pluginPath, 'utf8')
 
+
+
 // 1) Stub every import (string search rather than regex — the specifiers contain a bare /
 //    which would trip up the regex delimiter)
 function replaceOnce(haystack, startNeedle, endNeedle, replacement) {
@@ -168,6 +170,24 @@ try {
   assert.ok(
     runtime.includes('stopPropagation'),
     'handlers stop propagation so the composer never sees the confirm key')
+
+  // --- theme: auto follows the OS, light/dark pin it ---
+  // Regression guard: the dark palette block existed in CSS from day one but no
+  // class was ever applied, so the boot plate was permanently light. These pin
+  // the wiring: a default of 'auto', the enum accepting it, and the live
+  // prefers-color-scheme binding that flips mid-animation.
+  assert.ok(/theme:\s*'auto'/.test(src), "theme defaults to 'auto'")
+  assert.ok(/theme:\s*\['auto',\s*'light',\s*'dark'\]/.test(src), 'enum accepts auto')
+  assert.ok(src.includes("(prefers-color-scheme: dark)"), 'reads the OS colour scheme')
+  assert.ok(src.includes("addEventListener('change'"), 'subscribes to scheme changes')
+  assert.ok(/dsu-dark'/.test(src), 'toggles the dsu-dark palette class')
+  const cfgs = {}
+  for (const v of ['auto', 'light', 'dark', 'bogus']) {
+    cfgs[v === 'bogus' ? 'bogus' : v] = mod.normalize({ theme: v }).theme
+  }
+  assert.equal(cfgs.auto, 'auto', 'auto survives normalize')
+  assert.equal(cfgs.light, 'light', 'light survives normalize')
+  assert.equal(cfgs.bogus, 'auto', 'bogus theme falls back to auto')
 
   console.log('SMOKE OK — normalize/shouldPlay/register/capture-keys: all assertions passed')
 } finally {

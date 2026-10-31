@@ -86,7 +86,7 @@ Two entry points:
 ### Settings (on the "Boot Animation" sidebar page)
 
 - **Playback**: enable toggle, play trigger, playback speed (0.35–3×), whether interaction is mandatory, whether skipping is allowed
-- **Visual**: theme (warm white / dark), accent colour, chromatic-aberration duo, noise/scanline decoration toggles
+- **Visual**: theme (**match system** / warm white / dark — match-system follows the OS `prefers-color-scheme` and flips live, even mid-animation), accent colour, chromatic-aberration duo, noise/scanline decoration toggles
 - **Sound**: master SFX volume, SFX source (embedded assets / synthesised tones), narration toggle, speech rate, volume, start delay
 - **Copy**: identity name (the `ID CONFIRMED : XXX` shown on the access panel, defaults to `OPERATOR`, change it to your own name or callsign), the three brand lines, the footer, and 14 text fields in total
 
