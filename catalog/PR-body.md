@@ -5,7 +5,7 @@ Adds one entry to the Hermes plugin catalog:
 ```yaml
 name: hermes-boot-screen
 repo: https://github.com/OMOX563/hermes-boot-screen
-sha: "4bdfb3c67cd8341c3018631214b8c42d7cf50cb7"
+sha: "d1f7c9856412aa5f7a7d2d2318409b40e31e9aab"
 tier: community
 ```
 
@@ -56,7 +56,7 @@ screen before the workspace mounts:
 
 - [x] Owner-submitted (`OMOX563` owns the repo)
 - [x] Public repository
-- [x] Released (`v1.1.1` + GitHub release; `version` matches the pinned code)
+- [x] Released (`v1.2.0` + GitHub release; `version` matches the pinned code)
 - [x] Capabilities declared: none — registers no tools, hooks or middleware;
       `requires_env` absent
 - [x] `hermes plugins validate` passes on a clean clone at the pinned SHA:

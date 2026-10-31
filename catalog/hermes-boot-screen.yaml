@@ -6,7 +6,7 @@
 # English edition of hermes-startup-screen (see the PR body for the lineage).
 name: hermes-boot-screen
 repo: https://github.com/OMOX563/hermes-boot-screen
-sha: "4bdfb3c67cd8341c3018631214b8c42d7cf50cb7"
+sha: "d1f7c9856412aa5f7a7d2d2318409b40e31e9aab"
 title: "Hermes Boot Screen"
 description: >-
   Six-act boot animation for the Hermes desktop app — black-screen brand reveal,
@@ -19,5 +19,5 @@ description: >-
 maintainer: OMOX563
 tier: community
 category: desktop
-version: "1.1.1"
+version: "1.2.0"
 readme: true
